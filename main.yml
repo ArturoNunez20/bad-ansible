@@ -131,6 +131,31 @@
 #    command: postgresql-setup initdb
 #  - name: initilize postgres some more
 #    command: chkconfig postgresql on
+  - name: Check for initdb.log
+    stat:
+      path: /var/lib/pgsql/initdb.log
+    register: r_check_initdb_log
+    
+  - name: initialize postgress 1
+    command: postgresl-setup initdb
+    when: not r_check_initdb_log.stat.exists
+
+  - name: initialize postgres 2
+    command: postgresql-setup initdb
+    args:
+      creates: /var/lib/pgsql/initdb.log
+
+  - name: initialize  postgres 3
+    command: postgresql-setup initdb
+    ignore_errors: true
+
+#  - name: initilize postgres 4
+#    command: postgresql-setup initdb
+#    register: r_postgres_init
+#    failed_when: >-
+#      r_postgres_init.rc != 0 and \
+#      r_postgres_init.stdout != 'Data directory is not empty!'
+    
   - name: start postgres
     service:
       name: postgresql.service
